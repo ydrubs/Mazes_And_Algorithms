@@ -1,4 +1,4 @@
-# Mazes_And_Algorithms-
+# Mazes_And_Algorithms
 A text exchange with ChatGPT to create a simple maze game and learn about the depth-first-search Algorithm 
 
 The original prompt to ChatGPT was "Show me how to generate a maze using pygame graphics." ChatGPT generated the maze using Depth-First Search algorithm. This led to a serious of exchanges with ChatGPT that branced off into two different paths:
