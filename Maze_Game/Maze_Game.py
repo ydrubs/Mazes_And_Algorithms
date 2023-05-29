@@ -1,4 +1,5 @@
 import pygame
+import random
 
 # Constants
 CELL_SIZE = 20
@@ -20,7 +21,7 @@ window_height = ROWS * CELL_SIZE
 window = pygame.display.set_mode((window_width, window_height))
 
 # Maze grid
-grid = [[0] * COLS for _ in range(ROWS)]
+grid = [[15] * COLS for _ in range(ROWS)]
 
 # Start position
 start_row = 0
@@ -54,6 +55,36 @@ class MovableObject:
 
 # Create a movable object
 movable_object = MovableObject(start_row, start_col)
+
+# Maze generation using DFS algorithm
+def generate_maze(row, col):
+    grid[row][col] &= ~8  # Remove left wall
+
+    directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # Left, Right, Up, Down
+    random.shuffle(directions)
+
+    for direction in directions:
+        dx, dy = direction
+        new_row, new_col = row + dx, col + dy
+
+        if 0 <= new_row < ROWS and 0 <= new_col < COLS and grid[new_row][new_col] == 15:
+            if dx == -1:
+                grid[row][col] &= ~1  # Remove top wall
+                grid[new_row][new_col] &= ~4  # Remove bottom wall
+            elif dx == 1:
+                grid[new_row][new_col] &= ~1  # Remove top wall
+                grid[row][col] &= ~4  # Remove bottom wall
+            elif dy == -1:
+                grid[row][col] &= ~8  # Remove left wall
+                grid[new_row][new_col] &= ~2  # Remove right wall
+            elif dy == 1:
+                grid[new_row][new_col] &= ~8  # Remove left wall
+                grid[row][col] &= ~2  # Remove right wall
+
+            generate_maze(new_row, new_col)
+
+# Generate the maze
+generate_maze(start_row, start_col)
 
 # Draw the maze and movable object
 def draw_maze():
