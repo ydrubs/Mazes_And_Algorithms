@@ -1,139 +1,126 @@
 import pygame
 import random
 
-# Constants
-CELL_SIZE = 20
+# Define constants
+WIDTH = 800
+HEIGHT = 600
 ROWS = 15
-COLS = 15
-
-# Colors
+COLS = 20
+CELL_SIZE = min(WIDTH // COLS, HEIGHT // ROWS)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
+BLUE = (0, 0, 255)
 
-# Initialize Pygame
-pygame.init()
 
-# Create the window
-window_width = COLS * CELL_SIZE
-window_height = ROWS * CELL_SIZE
-window = pygame.display.set_mode((window_width, window_height))
+def generate_maze():
+    stack = [(0, 0)]
 
-# Maze grid
-grid = [[15] * COLS for _ in range(ROWS)]
+    while stack:
+        col, row = stack[-1]
+        grid[row][col] |= 16  # Mark the cell as visited
 
-# Start position
-start_row = 0
-start_col = 0
+        neighbors = [
+            (col, row - 1, 1, 4),  # Top neighbor
+            (col + 1, row, 2, 8),  # Right neighbor
+            (col, row + 1, 4, 1),  # Bottom neighbor
+            (col - 1, row, 8, 2)   # Left neighbor
+        ]
+        unvisited_neighbors = []
 
-# End position
-end_row = ROWS - 1
-end_col = COLS - 1
+        for ncol, nrow, dir_current, dir_neighbor in neighbors:
+            if 0 <= ncol < COLS and 0 <= nrow < ROWS and grid[nrow][ncol] & 16 == 0:
+                unvisited_neighbors.append((ncol, nrow, dir_current, dir_neighbor))
 
-# Movable object
-class MovableObject:
-    def __init__(self, row, col):
-        self.row = row
-        self.col = col
+        if unvisited_neighbors:
+            ncol, nrow, dir_current, dir_neighbor = random.choice(unvisited_neighbors)
+            grid[row][col] &= ~dir_current  # Remove the current cell's wall
+            grid[nrow][ncol] &= ~dir_neighbor  # Remove the neighbor's wall
+            stack.append((ncol, nrow))
+        else:
+            stack.pop()
 
-    def move_up(self):
-        if self.row > 0 and not grid[self.row][self.col] & 1:
-            self.row -= 1
 
-    def move_down(self):
-        if self.row < ROWS - 1 and not grid[self.row + 1][self.col] & 1:
-            self.row += 1
-
-    def move_left(self):
-        if self.col > 0 and not grid[self.row][self.col - 1] & 2:
-            self.col -= 1
-
-    def move_right(self):
-        if self.col < COLS - 1 and not grid[self.row][self.col] & 2:
-            self.col += 1
-
-# Create a movable object
-movable_object = MovableObject(start_row, start_col)
-
-# Maze generation using DFS algorithm
-def generate_maze(row, col):
-    grid[row][col] &= ~8  # Remove left wall
-
-    directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # Left, Right, Up, Down
-    random.shuffle(directions)
-
-    for direction in directions:
-        dx, dy = direction
-        new_row, new_col = row + dx, col + dy
-
-        if 0 <= new_row < ROWS and 0 <= new_col < COLS and grid[new_row][new_col] == 15:
-            if dx == -1:
-                grid[row][col] &= ~1  # Remove top wall
-                grid[new_row][new_col] &= ~4  # Remove bottom wall
-            elif dx == 1:
-                grid[new_row][new_col] &= ~1  # Remove top wall
-                grid[row][col] &= ~4  # Remove bottom wall
-            elif dy == -1:
-                grid[row][col] &= ~8  # Remove left wall
-                grid[new_row][new_col] &= ~2  # Remove right wall
-            elif dy == 1:
-                grid[new_row][new_col] &= ~8  # Remove left wall
-                grid[row][col] &= ~2  # Remove right wall
-
-            generate_maze(new_row, new_col)
-
-# Generate the maze
-generate_maze(start_row, start_col)
-
-# Draw the maze and movable object
-def draw_maze():
-    window.fill(BLACK)
+def draw_maze(screen):
     for row in range(ROWS):
         for col in range(COLS):
             x = col * CELL_SIZE
             y = row * CELL_SIZE
 
-            if grid[row][col] & 1:  # Check if top wall is present
-                pygame.draw.line(window, WHITE, (x, y), (x + CELL_SIZE, y), 1)
-            if grid[row][col] & 2:  # Check if right wall is present
-                pygame.draw.line(
-                    window, WHITE, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE), 1
-                )
-            if grid[row][col] & 4:  # Check if bottom wall is present
-                pygame.draw.line(
-                    window, WHITE, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE), 1
-                )
-            if grid[row][col] & 8:  # Check if left wall is present
-                pygame.draw.line(window, WHITE, (x, y), (x, y + CELL_SIZE), 1)
+            if grid[row][col] & 1:  # Top wall
+                pygame.draw.line(screen, WHITE, (x, y), (x + CELL_SIZE, y))
+            if grid[row][col] & 2:  # Right wall
+                pygame.draw.line(screen, WHITE, (x + CELL_SIZE, y), (x + CELL_SIZE, y + CELL_SIZE))
+            if grid[row][col] & 4:  # Bottom wall
+                pygame.draw.line(screen, WHITE, (x, y + CELL_SIZE), (x + CELL_SIZE, y + CELL_SIZE))
+            if grid[row][col] & 8:  # Left wall
+                pygame.draw.line(screen, WHITE, (x, y), (x, y + CELL_SIZE))
 
-    pygame.draw.rect(window, GREEN, (start_col * CELL_SIZE, start_row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    pygame.draw.rect(window, YELLOW, (end_col * CELL_SIZE, end_row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    pygame.draw.circle(
-        window,
-        YELLOW,
-        (movable_object.col * CELL_SIZE + CELL_SIZE // 2, movable_object.row * CELL_SIZE + CELL_SIZE // 2),
-        CELL_SIZE // 2
-    )
+            if row == ROWS - 1 and col == COLS - 1:  # Exit cell
+                pygame.draw.rect(screen, BLUE, (x, y, CELL_SIZE, CELL_SIZE))
+
+
+# Initialize pygame
+pygame.init()
+
+# Set up the display
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Maze Game")
+
+# Initialize the grid
+grid = [[15] * COLS for _ in range(ROWS)]
+
+# Generate the maze
+generate_maze()
+
+# Set up player position
+player_row = 0
+player_col = 0
 
 # Game loop
 running = True
+clock = pygame.time.Clock()
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                movable_object.move_up()
-            elif event.key == pygame.K_DOWN:
-                movable_object.move_down()
-            elif event.key == pygame.K_LEFT:
-                movable_object.move_left()
+                if player_row > 0 and not grid[player_row][player_col] & 1:
+                    player_row -= 1
             elif event.key == pygame.K_RIGHT:
-                movable_object.move_right()
+                if player_col < COLS - 1 and not grid[player_row][player_col] & 2:
+                    player_col += 1
+            elif event.key == pygame.K_DOWN:
+                if player_row < ROWS - 1 and not grid[player_row][player_col] & 4:
+                    player_row += 1
+            elif event.key == pygame.K_LEFT:
+                if player_col > 0 and not grid[player_row][player_col] & 8:
+                    player_col -= 1
 
-    draw_maze()
+    if player_row == ROWS - 1 and player_col == COLS - 1:  # Check if player reached the exit
+        screen.fill((255, 0, 0))  # Red screen
+        font = pygame.font.Font(None, 48)  # Create a font object
+        text = font.render("You Win!", True, (0, 255, 0))  # Render the text
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))  # Center the text on the screen
+        screen.blit(text, text_rect)  # Draw the text on the screen
+        pygame.display.flip()  # Update the display
+        pygame.time.wait(2000)  # Pause for 2 seconds
+        running = False  # End the game
+
+    # Clear the screen
+    screen.fill(BLACK)
+
+    # Draw the maze
+    draw_maze(screen)
+
+    # Draw yellow circle in player's position
+    pygame.draw.circle(screen, YELLOW, (player_col * CELL_SIZE + CELL_SIZE // 2, player_row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 3)
+
+    # Update the display
     pygame.display.flip()
+    clock.tick(60)
 
-# Quit Pygame
+# Quit the game
 pygame.quit()
