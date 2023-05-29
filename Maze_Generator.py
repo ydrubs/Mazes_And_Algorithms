@@ -3,7 +3,7 @@ import random
 
 # Constants
 WIDTH = 800  # Width of the window
-HEIGHT = 600  # Height of the window
+HEIGHT = 800  # Height of the window
 ROWS = 20  # Number of rows in the maze
 COLS = 20  # Number of columns in the maze
 CELL_SIZE = WIDTH // COLS  # Size of each cell
@@ -12,7 +12,9 @@ CELL_SIZE = WIDTH // COLS  # Size of each cell
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
-
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255,255,0)
 # Initialize Pygame
 pygame.init()
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -70,6 +72,14 @@ while stack:
         # Backtrack if there are no unvisited neighbors
         stack.pop()
 
+# Ensure a path from the start to the end point
+for i in range(1, ROWS, 2):
+    if grid[i][end_col - 1] == 0:
+        grid[i][end_col] = 0
+        break
+
+# Draw the maze
+# Draw the maze
 # Draw the maze
 def draw_maze():
     window.fill(BLACK)
@@ -92,7 +102,39 @@ def draw_maze():
                 pygame.draw.line(window, WHITE, (x, y), (x, y + CELL_SIZE), 1)
 
     pygame.draw.rect(window, GREEN, (start_col * CELL_SIZE, start_row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    pygame.draw.rect(window, GREEN, (end_col * CELL_SIZE, end_row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+    pygame.draw.rect(window, RED, (end_col * CELL_SIZE, end_row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+    pygame.draw.circle(window, BLUE, (start_col * CELL_SIZE + CELL_SIZE // 2, start_row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 4)
+    pygame.draw.circle(window, BLUE, (end_col * CELL_SIZE + CELL_SIZE // 2, end_row * CELL_SIZE + CELL_SIZE // 2), CELL_SIZE // 4)
+
+    # Mark the end position with a different shape
+    pygame.draw.rect(window, YELLOW, (end_col * CELL_SIZE + CELL_SIZE // 4, end_row * CELL_SIZE + CELL_SIZE // 4, CELL_SIZE // 2, CELL_SIZE // 2))
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    draw_maze()
+    pygame.display.flip()
+
+# Quit Pygame
+pygame.quit()
+
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    draw_maze()
+    pygame.display.flip()
+
+# Quit Pygame
+pygame.quit()
 
 # Game loop
 running = True
