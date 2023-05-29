@@ -19,14 +19,15 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Maze Generator")
 
 # Create a grid
-grid = [[0] * COLS for _ in range(ROWS)]
+grid = [[15] * COLS for _ in range(ROWS)]
 
 # Set the starting position
 start_row, start_col = 0, 0
-grid[start_row][start_col] = 1
+grid[start_row][start_col] = 0
 
 # Set the ending position
 end_row, end_col = ROWS - 1, COLS - 1
+grid[end_row][end_col] = 0
 
 # Create a stack to keep track of visited cells
 stack = [(start_row, start_col)]
@@ -37,14 +38,14 @@ while stack:
 
     # Find all unvisited neighbors of the current cell
     neighbors = []
-    if current_row > 0 and grid[current_row - 1][current_col] == 0:
-        neighbors.append((current_row - 1, current_col))
-    if current_row < ROWS - 1 and grid[current_row + 1][current_col] == 0:
-        neighbors.append((current_row + 1, current_col))
-    if current_col > 0 and grid[current_row][current_col - 1] == 0:
-        neighbors.append((current_row, current_col - 1))
-    if current_col < COLS - 1 and grid[current_row][current_col + 1] == 0:
-        neighbors.append((current_row, current_col + 1))
+    if current_row > 1 and grid[current_row - 2][current_col] == 15:
+        neighbors.append((current_row - 2, current_col))
+    if current_row < ROWS - 2 and grid[current_row + 2][current_col] == 15:
+        neighbors.append((current_row + 2, current_col))
+    if current_col > 1 and grid[current_row][current_col - 2] == 15:
+        neighbors.append((current_row, current_col - 2))
+    if current_col < COLS - 2 and grid[current_row][current_col + 2] == 15:
+        neighbors.append((current_row, current_col + 2))
 
     if neighbors:
         # Choose a random neighbor
@@ -52,20 +53,16 @@ while stack:
 
         # Remove the wall between the current cell and the chosen neighbor
         if next_row < current_row:
-            grid[current_row][current_col] |= 1  # Remove the top wall
-            grid[next_row][next_col] |= 4  # Remove the bottom wall
+            grid[current_row - 1][current_col] = 0  # Remove the top wall
         elif next_row > current_row:
-            grid[current_row][current_col] |= 4  # Remove the bottom wall
-            grid[next_row][next_col] |= 1  # Remove the top wall
+            grid[current_row + 1][current_col] = 0  # Remove the bottom wall
         elif next_col < current_col:
-            grid[current_row][current_col] |= 8  # Remove the left wall
-            grid[next_row][next_col] |= 2  # Remove the right wall
+            grid[current_row][current_col - 1] = 0  # Remove the left wall
         elif next_col > current_col:
-            grid[current_row][current_col] |= 2  # Remove the right wall
-            grid[next_row][next_col] |= 8  # Remove the left wall
+            grid[current_row][current_col + 1] = 0  # Remove the right wall
 
         # Mark the chosen neighbor as visited
-        grid[next_row][next_col] = 1
+        grid[next_row][next_col] = 0
 
         # Add the chosen neighbor to the stack
         stack.append((next_row, next_col))
